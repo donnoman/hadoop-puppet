@@ -6,27 +6,31 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  def apt_get
+    "DEBCONF_TERSE='yes' DEBIAN_PRIORITY='critical' DEBIAN_FRONTEND=noninteractive apt-get -qyu --force-yes"
+  end
+
   config.vm.define "puppetmaster" do |config|
-    config.vm.box = "hadoop-puppetmaster"
+    config.vm.box = "precise64"
     config.vm.network :private_network, ip: "192.168.33.11"
     config.vm.provision :shell, inline: <<-SCRIPT
-      sudo apt-get install puppetmaster-passenger
-      sudo apt-get install puppetmaster
+      sudo #{apt_get} install puppetmaster-passenger
+      sudo #{apt_get} install puppetmaster
     SCRIPT
   end
 
   config.vm.define "primary" do |config|
-    config.vm.box = "hadoop-primary"
+    config.vm.box = "precise64"
     config.vm.network :private_network, ip: "192.168.33.12"
     config.vm.provision :shell, inline: <<-SCRIPT
-      sudo apt-get install puppet
+      sudo #{apt_get} install puppet
     SCRIPT
   end
   config.vm.define "secondary" do |config|
-    config.vm.box = "hadoop-secondary"
+    config.vm.box = "precise64"
     config.vm.network :private_network, ip: "192.168.33.13"
     config.vm.provision :shell, inline: <<-SCRIPT
-      sudo apt-get install puppet
+      sudo #{apt_get} install puppet
     SCRIPT
   end
 
@@ -93,14 +97,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cd /usr/local/src
     wget --tries=2 -c --progress=bar:force https://apt.puppetlabs.com/puppetlabs-release-precise.deb
     sudo dpkg -i puppetlabs-release-precise.deb
-    sudo apt-get update
-  SCRIPT
-
-  config.vm.provision :host_shell, inline: <<-SCRIPT
-    [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-    cap deploy:provision deploy:setup deploy:cold
-    echo "Deploy Finished! Checking the applications health:"
-    curl -Is http://192.168.33.10/site/health
+    sudo #{apt_get} update
   SCRIPT
 
   # Enable provisioning with Puppet stand alone.  Puppet manifests
